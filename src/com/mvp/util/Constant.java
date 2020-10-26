@@ -38,7 +38,7 @@ public class Constant {
     public static final int PRODUCK_SPEED = 3000;
     //ai属性   改变状态和发射子弹间隔
     public static final int CHANG_TIME = 2000;
-    public static final double FIRE_P = 0.05;
+//    public static final double FIRE_P = 0.05;
 
 
 }

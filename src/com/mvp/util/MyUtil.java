@@ -1,9 +1,7 @@
 package com.mvp.util;
-
-import jdk.nashorn.internal.runtime.regexp.JoniRegExp;
-
+import org.apache.commons.lang3.RandomUtils;
 import java.awt.*;
-import java.util.Random;
+
 
 /**
  *  工具类
@@ -17,6 +15,17 @@ public class MyUtil {
      */
     public static final int getRandom(int min,int max){
         return (int) (Math.random()*(max-min) + min);
+    }
+
+    /**
+     * 获取指定范围随机小数
+     * @param max
+     * @param min
+     * @return
+     */
+    public static final double getRandomDouble(double min,double max){
+        return RandomUtils.nextDouble(min,max);
+
     }
     public static final Color getRandomColor(){
         int red = getRandom(0, 256);
@@ -49,5 +58,25 @@ public class MyUtil {
     public static Image getImg(String filename){
        return Toolkit.getDefaultToolkit().createImage(filename);
     }
-
+    public static void PlayBgMusic(){
+        //音乐
+        MusicPlayer bgMusic = new MusicPlayer("music/bg.mp3");
+        bgMusic.setLoop(true);
+        bgMusic.play_mp3();
+    }
+    public static void PlayFireMusic(){
+        //音乐
+        MusicPlayer bgMusic = new MusicPlayer("music/fire.mp3");
+        bgMusic.play_mp3();
+    }
+    public static void PlayDeathMusic(){
+        //音乐
+        MusicPlayer bgMusic = new MusicPlayer("music/death.wav");
+        bgMusic.play_wav();
+    }
+    public static void PlayExplodMusic(){
+        //音乐
+        MusicPlayer bgMusic = new MusicPlayer("music/explode.wav");
+        bgMusic.play_wav();
+    }
 }

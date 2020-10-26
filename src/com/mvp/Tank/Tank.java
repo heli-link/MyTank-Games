@@ -33,14 +33,14 @@ abstract public class Tank {
     public static final int STATE_MOVE = 1;
     public static final int STATE_DIE = 2;
 
-    public static final int HP_MAX = 100;
+    public int HP_MAX = 100;
     //图片的尺寸
     public static final int IMG_SIZE = 58;
     //默认速度 每帧移动的像素
     public static final int DEFAULT_SPEED = 4;
 
     private int x,y;
-    private int hp = 100;
+    private int hp = HP_MAX;
     private int htk;
     private int speed = DEFAULT_SPEED;
     private int dir;
@@ -48,6 +48,7 @@ abstract public class Tank {
     private Color color;
     private boolean isVisible = true;
 
+    private boolean isEnemy = true;
     //  TODO 子弹  使用 arrlist 会报错-遍历时存在并发问题
     private List<Bullet> bullets = Collections.synchronizedList(new ArrayList<>());
 //    private List<Bullet> bullets = new ArrayList<>();
@@ -55,7 +56,7 @@ abstract public class Tank {
     private List<Explode> explodes = new CopyOnWriteArrayList<>();
 
     private HpBar hpBar = new HpBar();
-
+//初始化
     public Tank(int x, int y, int dir) {
         this.x = x;
         this.y = y;
@@ -77,7 +78,7 @@ abstract public class Tank {
                 break;
         }
     }
-
+    //移动
     private void move() {
         switch (dir){
             case DIR_UP:
@@ -118,7 +119,7 @@ abstract public class Tank {
     }
 
     abstract void drawImgTank(Graphics g);
-
+    //发射子弹
     public void fire(){
         int bulletX = x;
         int bulletY = y;
@@ -143,8 +144,10 @@ abstract public class Tank {
                 break;
         }
         //使用线程池创建子弹对象
-
         addBullets(bulletX,bulletY);
+        if(!isEnemy){
+            MyUtil.PlayFireMusic();
+        }
     }
     //添加子弹
     private void addBullets(int bulletX,int bulletY){
@@ -155,9 +158,76 @@ abstract public class Tank {
         bullet.setY(bulletY);
         bullet.setDir(dir);
         bullet.setColor(color);
+//        随机大小
+        bullet.setRADIUS(MyUtil.getRandom(3,8));
         bullets.add(bullet);
-
-
+    }
+    //坦克和子弹的碰撞检测
+    public void collideBullet(List<Bullet> bullets){
+       for(Bullet bullet : bullets){
+           int bulletX = bullet.getX();
+           int bulletY = bullet.getY();
+           if(MyUtil.isCollision(x,y,bullet.getX(),bullet.getY(),IMG_SIZE/2)){
+               //子弹消失
+               bullet.setVisible(false);
+               //爆炸效果
+               Explode explode = ExplodesPool.get();
+               explode.setX(bulletX);
+               explode.setY(bulletY);
+//               explode.setIndex(0);
+               explodes.add(explode);
+               //坦克减血
+               hurt(bullet);
+               //标记死亡坦克
+               if(hp <= 0){
+                    isVisible = false;
+                    MyUtil.PlayExplodMusic();
+               }
+           }
+       }
+        
+    }
+    //坦克和墙的碰撞
+    public void CollideWall(List<Wall> walls){
+        for (Wall wall : walls) {
+            boolean result = MyUtil.isCollision(wall.getX() + Wall.radio, wall.getY()
+                    + wall.radio,x,y,IMG_SIZE/2+wall.radio);
+            if(result){
+                back();
+            }
+        }
+    }
+    //子弹和墙的碰撞
+    public void BulletCollideWall(List<Wall> walls){
+        for (Wall wall : walls) {
+            //子弹和墙
+            boolean collide = wall.isCollideBullet(bullets);
+            if(collide){
+                //爆炸效果
+                Explode explode = ExplodesPool.get();
+                explode.setX(wall.getX());
+                explode.setY(wall.getY());
+//               explode.setIndex(0);
+                explodes.add(explode);
+            }
+        }
+    }
+    //回退
+    private void back(){
+        switch (dir){
+            case DIR_UP:
+                y += speed;
+                break;
+            case DIR_DOWN:
+                y -= speed;
+                break;
+            case DIR_LIFT:
+                x += speed;
+                break;
+            case DIR_RIGHT:
+                x -= speed;
+                break;
+        }
     }
     //绘制所有的子弹
     public void drawBullets(Graphics g){
@@ -182,73 +252,6 @@ abstract public class Tank {
                 //删除对象，长度减一，否则会越界
                 i--;
             }
-        }
-    }
-    //坦克和子弹的碰撞检测
-    public void collideBullet(List<Bullet> bullets){
-       for(Bullet bullet : bullets){
-           int bulletX = bullet.getX();
-           int bulletY = bullet.getY();
-           if(MyUtil.isCollision(x,y,bullet.getX(),bullet.getY(),IMG_SIZE/2)){
-               //子弹消失
-               bullet.setVisible(false);
-               //爆炸效果
-               Explode explode = ExplodesPool.get();
-               explode.setX(bulletX);
-               explode.setY(bulletY);
-//               explode.setIndex(0);
-               explodes.add(explode);
-               //坦克减血
-               hurt(bullet);
-               //标记死亡坦克
-               if(hp <= 0){
-                    isVisible = false;
-               }
-           }
-       }
-        
-    }
-
-    //子弹和墙的碰撞
-    public void BulletCollideWall(List<Wall> walls){
-        for (Wall wall : walls) {
-            //子弹和墙
-            boolean collide = wall.isCollideBullet(bullets);
-            if(collide){
-                //爆炸效果
-                Explode explode = ExplodesPool.get();
-                explode.setX(wall.getX());
-                explode.setY(wall.getY());
-//               explode.setIndex(0);
-                explodes.add(explode);
-            }
-        }
-    }
-    //坦克和墙的碰撞
-    public void CollideWall(List<Wall> walls){
-        for (Wall wall : walls) {
-           boolean result = MyUtil.isCollision(wall.getX() + Wall.radio, wall.getY()
-                   + wall.radio,x,y,IMG_SIZE/2+wall.radio);
-           if(result){
-                back();
-           }
-        }
-    }
-    //回退
-    private void back(){
-        switch (dir){
-            case DIR_UP:
-                y += speed;
-                break;
-            case DIR_DOWN:
-                y -= speed;
-                break;
-            case DIR_LIFT:
-                x += speed;
-                break;
-            case DIR_RIGHT:
-                x -= speed;
-                break;
         }
     }
     //绘制所有爆炸效果
@@ -299,6 +302,23 @@ abstract public class Tank {
         }
 
     }
+
+    public boolean isEnemy() {
+        return isEnemy;
+    }
+
+    public void setEnemy(boolean enemy) {
+        isEnemy = enemy;
+    }
+
+    public int getHP_MAX() {
+        return HP_MAX;
+    }
+
+    public void setHP_MAX(int HP_MAX) {
+        this.HP_MAX = HP_MAX;
+    }
+
     public boolean isVisible() {
         return isVisible;
     }

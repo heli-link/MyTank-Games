@@ -5,6 +5,8 @@ import com.mvp.Map.Wall;
 import com.mvp.Tank.Enemy;
 import com.mvp.Tank.MyTank;
 import com.mvp.Tank.Tank;
+import com.mvp.util.MusicPlayer;
+import com.mvp.util.MyUtil;
 
 //静态导入
 
@@ -44,7 +46,7 @@ public class GameFrame extends JFrame {
     //双缓冲的画布
     Image image = new BufferedImage(FRAME_WIDTH, FRAME_HEIGHT, BufferedImage.TYPE_4BYTE_ABGR);
     //欢迎界面背景和游戏背景
-    static Image welcomebg,gamebg,start_0,start_1,exit_0,exit_1;
+    static Image welcomebg,gamebg,start_0,start_1,exit_0,exit_1,death;
     static {
         welcomebg = Toolkit.getDefaultToolkit().createImage("image/welcome.png");
         gamebg = Toolkit.getDefaultToolkit().createImage("image/gamebg.png");
@@ -53,6 +55,8 @@ public class GameFrame extends JFrame {
         start_1 = Toolkit.getDefaultToolkit().createImage("image/start_1.png");
         exit_0 = Toolkit.getDefaultToolkit().createImage("image/exit_0.png");
         exit_1 = Toolkit.getDefaultToolkit().createImage("image/exit_1.png");
+        death = Toolkit.getDefaultToolkit().createImage("image/death.png");
+
     }
     public GameFrame(){
         initFrame();
@@ -75,7 +79,7 @@ public class GameFrame extends JFrame {
     private void initGame(){
         //初始化
         GameState = START_MENU;
-
+        MyUtil.PlayBgMusic();
     }
     private void initFrame(){
         setTitle(GAME_TITLE);
@@ -118,16 +122,18 @@ public class GameFrame extends JFrame {
         g.setColor(Color.black);
         g.fillRect(0,0,FRAME_WIDTH,FRAME_HEIGHT);
         //死亡提示
-        int STR_W = 600;
-        int x = (FRAME_WIDTH - STR_W) / 2;
-        int y = FRAME_HEIGHT*1/4;
-        g.setColor(Color.red);
-        g.setFont(new Font("黑体",Font.BOLD,74));
-        g.drawString("You Are Death!!!",x,y);
+//        int STR_W = 600;
+//        int x = (FRAME_WIDTH - STR_W) / 2;
+//        int y = FRAME_HEIGHT*1/4;
+//        g.setColor(Color.red);
+//        g.setFont(new Font("黑体",Font.BOLD,74));
+//        g.drawString("You Are Death!!!",x,y);
+        //使用图片
+        g.drawImage(death,0,0,null);
         //信息提示
-        STR_W = 300;
-        x = (FRAME_WIDTH - STR_W) / 2;
-        y = FRAME_HEIGHT*3/4;
+        int STR_W = 300;
+        int x = (FRAME_WIDTH - STR_W) / 2;
+        int y = FRAME_HEIGHT*7/8;
         g.setFont(new Font("黑体",Font.BOLD,24));
         g.setColor(Color.white);
         g.drawString("按 enter 键回到主菜单",x,y);
@@ -162,6 +168,8 @@ public class GameFrame extends JFrame {
         if(myTank.isVisible()){
             myTank.draw(g);
         }else {
+//            死亡
+            MyUtil.PlayDeathMusic();
             GameState = START_OVER;
         }
 
@@ -385,7 +393,6 @@ public class GameFrame extends JFrame {
             enemy.clearButtles();
         }
         enemys.clear();
-
     }
     //坦克和子弹的碰撞检测
     private void TankCollideBullet(){
